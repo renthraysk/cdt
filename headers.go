@@ -29,11 +29,11 @@ func availableDictionary(r http.Header) ([]byte, bool) {
 	return sf.ByteSequence(dst, r["Available-Dictionary"])
 }
 
-// https://www.ietf.org/archive/id/draft-ietf-httpbis-compression-dictionary-19.html#name-use-as-dictionary
+// https://www.rfc-editor.org/rfc/rfc9842.html#name-use-as-dictionary
 // type is raw
 func appendUseAsDictionaryRaw(p []byte, match, id string) ([]byte, error) {
 
-	// https://www.ietf.org/archive/id/draft-ietf-httpbis-compression-dictionary-19.html#name-match
+	// https://www.rfc-editor.org/rfc/rfc9842.html#name-match
 	if len(match) == 0 {
 		return p, ErrMatchRequired
 	}
@@ -42,7 +42,7 @@ func appendUseAsDictionaryRaw(p []byte, match, id string) ([]byte, error) {
 		return p, ErrMatchInvalid
 	}
 
-	// https://www.ietf.org/archive/id/draft-ietf-httpbis-compression-dictionary-19.html#name-id
+	// https://www.rfc-editor.org/rfc/rfc9842.html#name-id
 	if len(id) > 0 {
 		if len(id) > DictionaryIDMaxLength {
 			return p, ErrIDInvalid

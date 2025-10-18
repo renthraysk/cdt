@@ -12,7 +12,7 @@ import (
 // Compendium represents a ring buffer of compression dictionaries with thread-safe access.
 type Compendium struct {
 	id              string
-	useAsDictionary string
+	useAsDictionary string // Use-As-Dictionary header value
 
 	mu       sync.RWMutex
 	ring     []*Dictionary

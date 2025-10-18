@@ -52,7 +52,7 @@ func NewDictionary(r io.Reader, lastModified time.Time) (*Dictionary, error) {
 		pool: sync.Pool{New: func() any {
 			z, err := zstd.NewWriter(nil, zstd.WithEncoderDictRaw(0, data))
 			if err != nil {
-				panic(err.Error()) // @TODO elimnate
+				panic(err.Error()) // @TODO eliminate
 			}
 			return z
 		}},
