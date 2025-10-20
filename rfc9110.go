@@ -59,7 +59,7 @@ func (c *Cached) evaluatePreconditions(method string, r http.Header) bool {
 	switch method {
 	case http.MethodGet, http.MethodHead:
 		// Step 3
-		if nm, ok := c.ifNoneMatch(r); ok {
+		if nm, ok := c.ifNoneMatch(r, true); ok {
 			if !nm {
 				return false // (304 Not Modified)
 			}
@@ -76,11 +76,10 @@ func (c *Cached) evaluatePreconditions(method string, r http.Header) bool {
 			}
 		}
 		r.Del("Range")
-		return false
 		*/
 	default:
 		// Step 3
-		if nm, ok := c.ifNoneMatch(r); ok && !nm {
+		if nm, ok := c.ifNoneMatch(r, false); ok && !nm {
 			return false // (412 Precondition failed)
 		}
 	}
@@ -129,13 +128,12 @@ func (c *Cached) ifMatch(r http.Header) (eval bool, present bool) {
 	case "*":
 		return true, true
 	default:
-		if len(c.eTag) != 1 {
-			return false, false
-		}
-		if eTag, weak := eTagNormalize(c.eTag[0]); !weak {
-			for e, weak := range eTags(text) {
-				if !weak && e == eTag {
-					return true, true
+		if len(c.eTag) == 1 {
+			if eTag, weak := eTagNormalize(c.eTag[0]); !weak {
+				for e, weak := range eTags(text) {
+					if !weak && e == eTag {
+						return true, true
+					}
 				}
 			}
 		}
@@ -144,7 +142,7 @@ func (c *Cached) ifMatch(r http.Header) (eval bool, present bool) {
 }
 
 // https://www.rfc-editor.org/rfc/rfc9110.html#name-if-none-match
-func (c *Cached) ifNoneMatch(r http.Header) (eval bool, present bool) {
+func (c *Cached) ifNoneMatch(r http.Header, isSafeMethod bool) (eval bool, present bool) {
 	switch text := r.Get("If-None-Match"); text {
 	case "":
 		return false, false
@@ -152,12 +150,13 @@ func (c *Cached) ifNoneMatch(r http.Header) (eval bool, present bool) {
 		return false, true
 	default:
 		if len(c.eTag) != 1 {
-			return false, false
+			return true, true
 		}
-		eTag, _ := eTagNormalize(c.eTag[0])
-		for e := range eTags(text) {
-			if e == eTag {
-				return false, true
+		if eTag, weak := eTagNormalize(c.eTag[0]); !isSafeMethod || !weak {
+			for e, w := range eTags(text) {
+				if (!isSafeMethod || !w) && e == eTag {
+					return false, true
+				}
 			}
 		}
 	}
