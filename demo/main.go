@@ -20,7 +20,7 @@ func main() {
 		Path:   "/demo.txt",
 	}
 
-	h, err := cdt.New(3, u.Path, "")
+	h, err := cdt.NewSelfPack(3, u.Path, "")
 	if err != nil {
 		log.Fatalf("cdt.New failed: %v", err)
 	}

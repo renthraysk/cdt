@@ -7,55 +7,59 @@ import (
 	"time"
 )
 
-type CDT struct {
+// SelfPack: An HTTP resource that serves as its own compression dictionary.
+// When a client request supports 'dcz' Content-Encoding and includes an
+// Available-Dictionary matching a retained prior version, the latest resource
+// version is compressed using that prior version as the compression dictionary.
+type SelfPack struct {
 	current    atomic.Pointer[Resource]
 	compendium *Compendium
 }
 
-func New(maxSize int, match, id string) (*CDT, error) {
+func NewSelfPack(maxSize int, match, id string) (*SelfPack, error) {
 	compendium, err := NewCompendium(maxSize, match, id)
 	if err != nil {
 		return nil, err
 	}
-	return &CDT{
+	return &SelfPack{
 		compendium: compendium,
 	}, nil
 }
 
-func (cdt *CDT) Put(r io.Reader, lastModified time.Time) error {
+func (sp *SelfPack) Put(r io.Reader, lastModified time.Time) error {
 	d, err := NewDictionary(r, lastModified)
 	if err != nil {
 		return err
 	}
-	cdt.compendium.Add(d)
-	cdt.current.Store(&d.Resource)
+	sp.compendium.Add(d)
+	sp.current.Store(&d.Resource)
 	return nil
 }
 
-func (cdt *CDT) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (sp *SelfPack) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet, http.MethodHead:
-		res := cdt.current.Load()
+		res := sp.current.Load()
 		if res == nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		if err := cdt.compendium.Serve(w, r, res); err != nil {
+		if err := sp.compendium.Serve(w, r, res); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 	case http.MethodPut:
-		if res := cdt.current.Load(); res != nil {
+		if res := sp.current.Load(); res != nil {
 			if !res.evaluatePreconditions(r.Method, r.Header) {
 				w.WriteHeader(http.StatusPreconditionFailed)
 				return
 			}
 		}
 
-		if err := cdt.Put(r.Body, time.Now()); err != nil {
+		if err := sp.Put(r.Body, time.Now()); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
