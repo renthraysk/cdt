@@ -29,7 +29,7 @@ func Test_appendStringEscape(t *testing.T) {
 			continue
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			got, ok := appendStringEscape(tt.p, tt.unescaped)
+			got, ok := stringAppendEscape(tt.p, tt.unescaped)
 			if ok != tt.ok {
 				t.Errorf("appendStringEscape() = %v, want %v", ok, tt.ok)
 			} else if string(got) != tt.escaped {
@@ -46,7 +46,7 @@ func Test_appendStringUnescape(t *testing.T) {
 		}
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, ok := appendStringUnescape(tt.p, tt.escaped)
+			got, ok := stringAppendUnescape(tt.p, tt.escaped)
 			if ok != tt.ok {
 				t.Errorf("appendStringUnescape() = %v, want %v", ok, tt.ok)
 			} else if string(got) != tt.unescaped {

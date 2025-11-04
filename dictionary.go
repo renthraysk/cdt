@@ -71,7 +71,7 @@ func (d *Dictionary) SHA256() string {
 
 func (d *Dictionary) AvailableDictionary() string {
 	p := make([]byte, 0, sf.ByteSequenceLen(sha256.Size))
-	return string(sf.AppendByteSequence(p, d.sha256()))
+	return string(sf.ByteSequenceAppend(p, d.sha256()))
 }
 
 func (d *Dictionary) Encode(w io.Writer, r io.WriterTo) error {

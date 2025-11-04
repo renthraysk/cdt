@@ -37,7 +37,7 @@ func appendUseAsDictionaryRaw(p []byte, match, id string) ([]byte, error) {
 	if len(match) == 0 {
 		return p, ErrMatchRequired
 	}
-	q, ok := sf.AppendKeyString(p, "match", match)
+	q, ok := sf.KeyAppendString(p, "match", match)
 	if !ok {
 		return p, ErrMatchInvalid
 	}
@@ -48,7 +48,7 @@ func appendUseAsDictionaryRaw(p []byte, match, id string) ([]byte, error) {
 			return p, ErrIDInvalid
 		}
 		q = append(q, ' ')
-		if q, ok = sf.AppendKeyString(q, "id", id); !ok {
+		if q, ok = sf.KeyAppendString(q, "id", id); !ok {
 			return p, ErrIDInvalid
 		}
 	}

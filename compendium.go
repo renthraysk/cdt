@@ -19,8 +19,8 @@ type Compendium struct {
 	addPoint int
 }
 
-// NewCompendium creates a new Compendium instance with the specified maximum number of
-// Dictionaries available for compression.
+// NewCompendium creates a new Compendium instance with the specified maximum
+// number of dictionaries available for compression.
 // match, and id refer to the Use-As-Dictionary header values.
 // All dictionaries in a compendium will share the same id, with the
 // Available-Dictionary used to pick an individual dictionary if
@@ -85,15 +85,12 @@ func (c *Compendium) Serve(w http.ResponseWriter, r *http.Request, res *Resource
 func (c *Compendium) Add(newD *Dictionary) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if cap(c.ring) <= 0 {
-		return
-	}
 	for _, d := range c.ring {
 		if d.SHA256() == newD.SHA256() {
 			return
 		}
 	}
-	if len(c.ring) <= 0 || len(c.ring) < cap(c.ring) {
+	if len(c.ring) < cap(c.ring) {
 		c.ring = append(c.ring, newD)
 		return
 	}
