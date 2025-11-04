@@ -2,7 +2,6 @@ package cdt
 
 import (
 	"io"
-	"iter"
 	"net/http"
 	"strings"
 	"time"
@@ -106,17 +105,18 @@ func eTagNormalize(s string) (string, bool) {
 	return s, weak
 }
 
-func eTags(list string) iter.Seq2[string, bool] {
-	return func(yield func(eTag string, weak bool) bool) {
-		for i := strings.IndexByte(list, ','); i >= 0; i = strings.IndexByte(list, ',') {
-			if s, weak := eTagNormalize(list[:i]); len(s) > 0 && !yield(s, weak) {
-				return
-			}
-			list = list[i:][len(","):]
+type Etags string
+
+func (e Etags) Tags(yield func(eTag string, weak bool) bool) {
+	list := string(e)
+	for i := strings.IndexByte(list, ','); i >= 0; i = strings.IndexByte(list, ',') {
+		if s, weak := eTagNormalize(list[:i]); len(s) > 0 && !yield(s, weak) {
+			return
 		}
-		if s, weak := eTagNormalize(list); len(s) > 0 {
-			yield(s, weak)
-		}
+		list = list[i:][len(","):]
+	}
+	if s, weak := eTagNormalize(list); len(s) > 0 {
+		yield(s, weak)
 	}
 }
 
@@ -130,7 +130,7 @@ func (c *Cached) ifMatch(r http.Header) (eval bool, present bool) {
 	default:
 		if len(c.eTag) == 1 {
 			if eTag, weak := eTagNormalize(c.eTag[0]); !weak {
-				for e, weak := range eTags(text) {
+				for e, weak := range Etags(text).Tags {
 					if !weak && e == eTag {
 						return true, true
 					}
@@ -149,13 +149,12 @@ func (c *Cached) ifNoneMatch(r http.Header, isSafeMethod bool) (eval bool, prese
 	case "*":
 		return false, true
 	default:
-		if len(c.eTag) != 1 {
-			return true, true
-		}
-		if eTag, weak := eTagNormalize(c.eTag[0]); !isSafeMethod || !weak {
-			for e, w := range eTags(text) {
-				if (!isSafeMethod || !w) && e == eTag {
-					return false, true
+		if len(c.eTag) == 1 {
+			if eTag, weak := eTagNormalize(c.eTag[0]); !isSafeMethod || !weak {
+				for e, w := range Etags(text).Tags {
+					if (!isSafeMethod || !w) && e == eTag {
+						return false, true
+					}
 				}
 			}
 		}
