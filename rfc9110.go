@@ -73,8 +73,8 @@ func (c *Cached) evaluatePreconditions(method string, r http.Header) bool {
 			if ir, ok := c.ifRange(r); ok && ir {
 				break
 			}
+			r.Del("Range")
 		}
-		r.Del("Range")
 		*/
 	default:
 		// Step 3
@@ -130,8 +130,8 @@ func (c *Cached) ifMatch(r http.Header) (eval bool, present bool) {
 	default:
 		if len(c.eTag) == 1 {
 			if eTag, weak := eTagNormalize(c.eTag[0]); !weak {
-				for e, weak := range Etags(text).Tags {
-					if !weak && e == eTag {
+				for e, w := range Etags(text).Tags {
+					if !w && e == eTag {
 						return true, true
 					}
 				}
@@ -183,8 +183,8 @@ func (c *Cached) ifModifiedSince(r http.Header) (eval bool, present bool) {
 func (c *Cached) ifRange(r http.Header) (eval bool, present bool) {
 	if text := r.Get("If-Range"); text != "" {
 		if len(c.eTag) == 1 {
-			t, w := eTagNormalize(text)
-			if e, weak := eTagNormalize(c.eTag[0]); weak == w && e == t {
+			tag, weak := eTagNormalize(c.eTag[0])
+			if t, w := eTagNormalize(text); weak == w && tag == t {
 				return true, true
 			}
 		}
