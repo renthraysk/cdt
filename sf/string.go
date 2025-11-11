@@ -50,14 +50,25 @@ func stringCut(s string) (string, string, bool) {
 		return "", s, false
 	}
 	i := 1
-	for i < len(s) && isPrint(s[i]) && s[i] != '"' {
+	for i < len(s) {
+		for i < len(s) && isPrint(s[i]) && s[i] != '\\' && s[i] != '"' {
+			i++
+		}
+		if i >= len(s) {
+			return "", s, false
+		}
+		if s[i] == '"' {
+			i++
+			return s[:i], s[i:], true
+		}
+		// s[i] == '/'
+		i++
+		if i >= len(s) || (s[i] != '\\' && s[i] != '"') {
+			return "", s, false
+		}
 		i++
 	}
-	if i >= len(s) || s[i] != '"' {
-		return "", s, false
-	}
-	i++
-	return s[:i], s[i:], true
+	return s, "", true
 }
 
 func stringAppend(p []byte, s string) ([]byte, bool) {

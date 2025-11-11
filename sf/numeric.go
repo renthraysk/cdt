@@ -64,6 +64,37 @@ func numericCut(s string) (string, string, bool) {
 	return s[:i], s[i:], true
 }
 
+func integerCut(s string) (string, string, bool) {
+	if len(s) <= 0 {
+		return "", s, false
+	}
+	i := 0
+	if s[0] == '-' {
+		i = len("-")
+	}
+	if i >= len(s) || !isDigit(s[i]) {
+		return "", s, false
+	}
+	n := i
+	i++
+	for i < len(s) && isDigit(s[i]) {
+		i++
+	}
+	// integer
+	n += integerDigits
+	if i > n {
+		return "", s, false
+	}
+	if i >= len(s) {
+		return s, "", true
+	}
+	if s[i] == '.' {
+		// looks like a decimal
+		return "", s, false
+	}
+	return s[:i], s[i:], true
+}
+
 func integerParse(s string) (int64, bool) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	return i, err == nil

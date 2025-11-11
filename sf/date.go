@@ -3,18 +3,18 @@ package sf
 import "time"
 
 func dateCut(s string) (string, string, bool) {
-	if len(s) < len("@0") || s[0] != '@' || !isDigit(s[1]) {
+	if len(s) < len("@0") || s[0] != '@' {
 		return "", s, false
 	}
-	i := 2
-	for i < len(s) && isDigit(s[i]) {
-		i++
+	ss, r, ok := integerCut(s[1:])
+	if !ok {
+		return "", s, false
 	}
-	return s[:i], s[i:], true
+	return s[:1+len(ss)], r, true
 }
 
 func dateParse(s string) (time.Time, bool) {
-	if len(s) >= len("@0") && s[0] == '@' && isDigit(s[1]) {
+	if len(s) >= len("@0") && s[0] == '@' {
 		if s, ok := integerParse(s[1:]); ok {
 			return time.Unix(s, 0), true
 		}

@@ -27,5 +27,5 @@ func tokenCut(s string) (string, string, bool) {
 	if i >= len(s) {
 		return s, "", true
 	}
-	return s[:i], s[:i], true
+	return s[:i], s[i:], true
 }
