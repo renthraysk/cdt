@@ -1,7 +1,6 @@
 package sf
 
 import (
-	"slices"
 	"strings"
 	"testing"
 )
@@ -10,67 +9,55 @@ var nines = strings.Repeat("9", 24)
 
 var parseTests = []struct {
 	name string // description of this test case
-	// Named input parameters for target function.
-	s    string
-	want []string
+
+	inputString string
+	ok          bool
+	item        string
+	remain      string
 }{
-	{"empty", "", []string{}},
-	{"true", "?1", []string{"?1"}},
-	{"false", "?0", []string{"?0"}},
-	{"boolean-invalid", "?x", []string{}},
-	{"string-empty", `""`, []string{`""`}},
-	{"string", `"abc"`, []string{`"abc"`}},
-	{"string-invalid", `"abc`, []string{}},
-	{"byte-sequence-empty", "::", []string{"::"}},
-	{"byte-sequence-invalid", ":", []string{}},
-
-	{"token-1", "aB*-", []string{"aB*-"}},
-	{"token-2", "*abc", []string{"*abc"}},
-
-	{"date", "@0", []string{"@0"}},
-	{"date-invalid", "@A", []string{}},
-
-	{"integer-0", "0", []string{"0"}},
-	{"integer-1", "1", []string{"1"}},
-	{"integer--1", "-1", []string{"-1"}},
-
-	{"integer-max", nines[:integerDigits], []string{nines[:15]}},
-	{"integer-min", "-" + nines[:integerDigits], []string{"-" + nines[:integerDigits]}},
-	{"integer-over", nines[:integerDigits+1], []string{}},
-	{"integer-under", "-" + nines[:integerDigits+1], []string{}},
-
-	{"decimal", nines[:decimalDigits] + "." + nines[:decimalFracDigits], []string{nines[:decimalDigits] + "." + nines[:decimalFracDigits]}},
-	{"decimal-over", nines[:decimalDigits+1] + ".1", []string{}},
-	{"decimal-frac", "1." + nines[:decimalFracDigits+1], []string{}},
-
-	{"display-sequence", `%"%E2%82%AC"`, []string{`%"%E2%82%AC"`}},
+	{"empty", "", false, "", ""},
+	{"true", "?1", true, "?1", ""},
+	{"false", "?0", true, "?0", ""},
+	{"boolean-invalid", "?x", false, "", "?x"},
+	{"string-empty", `""`, true, `""`, ""},
+	{"string", `"abc"`, true, `"abc"`, ""},
+	{"string-invalid", `"abc`, false, "", `"abc`},
+	{"byte-sequence-empty", "::", true, "::", ""},
+	{"byte-sequence-invalid", ":", false, "", ":"},
+	{"token-1", "aB*-", true, "aB*-", ""},
+	{"token-2", "*abc", true, "*abc", ""},
+	{"date", "@0", true, "@0", ""},
+	{"date-invalid", "@A", false, "", "@A"},
+	{"integer-0", "0", true, "0", ""},
+	{"integer-1", "1", true, "1", ""},
+	{"integer--1", "-1", true, "-1", ""},
+	{"integer-max", nines[:integerDigits], true, nines[:15], ""},
+	{"integer-min", "-" + nines[:integerDigits], true, "-" + nines[:integerDigits], ""},
+	{"integer-over", nines[:integerDigits+1], false, "", nines[:integerDigits+1]},
+	{"integer-under", "-" + nines[:integerDigits+1], false, "", "-" + nines[:integerDigits+1]},
+	{"decimal", nines[:decimalDigits] + "." + nines[:decimalFracDigits], true, nines[:decimalDigits] + "." + nines[:decimalFracDigits], ""},
+	{"decimal-over", nines[:decimalDigits+1] + ".1", false, "", nines[:decimalDigits+1] + ".1"},
+	{"decimal-frac", "1." + nines[:decimalFracDigits+1], false, "", "1." + nines[:decimalFracDigits+1]},
+	{"display-sequence", `%"%E2%82%AC"`, true, `%"%E2%82%AC"`, ""},
 }
 
-func TestParse(t *testing.T) {
-
-	buf := make([]string, 0, 16)
-
+func TestItemCut(t *testing.T) {
 	for _, tt := range parseTests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := slices.AppendSeq(buf[:0], InputString(tt.s).Items)
-			if !slices.Equal(got, tt.want) {
-				t.Errorf("got %v, want %v", got, tt.want)
+			got, r, ok := itemCut(tt.inputString)
+
+			if ok != tt.ok {
+				t.Errorf("expected ok %v, got %v", tt.ok, ok)
+			}
+			if !tt.ok {
+				return
+			}
+			if r != tt.remain {
+				t.Errorf("expected remain %q, got %q", tt.remain, r)
+			}
+			if got != tt.item {
+				t.Errorf("got %v, want %v", got, tt.item)
 			}
 		})
-	}
-}
-
-func BenchmarkParse(b *testing.B) {
-
-	buf := make([]string, 0, 16)
-
-	b.ReportAllocs()
-	for b.Loop() {
-		for _, tt := range parseTests {
-			b := buf[:0]
-			for v := range InputString(tt.s).Items {
-				b = append(b, v)
-			}
-		}
 	}
 }

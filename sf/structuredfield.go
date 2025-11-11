@@ -1,37 +1,31 @@
 package sf
 
-type InputString string
-
-func (is InputString) Items(yield func(i string) bool) {
-	for s := string(is); len(s) > 0; {
-		var i string
-		var ok bool
-
-		switch c := s[0]; {
-		case isLower(c), isUpper(c):
-			i, s, ok = tokenCut(s)
-		case isDigit(c):
-			i, s, ok = numericCut(s)
-		default:
-			switch c {
-			case '"':
-				i, s, ok = stringCut(s)
-			case '*':
-				i, s, ok = tokenCut(s)
-			case '-':
-				i, s, ok = numericCut(s)
-			case ':':
-				i, s, ok = byteSequenceCut(s)
-			case '?':
-				i, s, ok = boolCut(s)
-			case '@':
-				i, s, ok = dateCut(s)
-			case '%':
-				i, s, ok = displayStringCut(s)
-			}
-		}
-		if !ok || !yield(i) {
-			return
+func itemCut(s string) (string, string, bool) {
+	if len(s) <= 0 {
+		return "", "", false
+	}
+	switch c := s[0]; {
+	case isLower(c), isUpper(c):
+		return tokenCut(s)
+	case isDigit(c):
+		return numericCut(s)
+	default:
+		switch c {
+		case '"':
+			return stringCut(s)
+		case '*':
+			return tokenCut(s)
+		case '-':
+			return numericCut(s)
+		case ':':
+			return byteSequenceCut(s)
+		case '?':
+			return boolCut(s)
+		case '@':
+			return dateCut(s)
+		case '%':
+			return displayStringCut(s)
 		}
 	}
+	return "", s, false
 }
