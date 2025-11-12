@@ -6,7 +6,14 @@ import (
 	"testing"
 )
 
-var nines = strings.Repeat("9", 24)
+const (
+	// https://www.rfc-editor.org/rfc/rfc9651#section-3.3.4-4
+	tokenMinMaxLength = 512
+)
+
+var nines = strings.Repeat("9", integerDigits+1)
+
+var tokenMinMax = strings.Repeat("a", tokenMinMaxLength)
 
 var parseTests = []struct {
 	name string // description of this test case
@@ -33,7 +40,6 @@ var parseTests = []struct {
 	{"string-multi-line", `"abc\ndef"`, false, "", `"abc\ndef"`},
 
 	{"byte-sequence-empty", "::", true, "::", ""},
-	{"byte-sequence-invalid", ":", false, "", ":"},
 	{"byte-sequence-single-colon", ":", false, "", ":"},
 	{"byte-sequence-with-content", ":abc:", true, ":abc:", ""},
 	{"byte-sequence-percent-empty", `:%`, false, "", `:%`},
@@ -46,7 +52,7 @@ var parseTests = []struct {
 	{"token-special-start", "!abc", false, "", "!abc"},
 	{"token-special-end", "abc!", true, "abc!", ""},
 	{"token-space", "a b", true, "a", " b"},
-	{"token-long", strings.Repeat("a", 1000), true, strings.Repeat("a", 1000), ""}, // Assuming reasonable length limit
+	{"token-long", tokenMinMax, true, tokenMinMax, ""}, // Assuming reasonable length limit
 
 	{"integer-0", "0", true, "0", ""},
 	{"integer-1", "1", true, "1", ""},
