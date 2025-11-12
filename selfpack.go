@@ -16,14 +16,10 @@ type SelfPack struct {
 	compendium *Compendium
 }
 
-func NewSelfPack(maxSize int, match, id string) (*SelfPack, error) {
-	compendium, err := NewCompendium(maxSize, match, id)
-	if err != nil {
-		return nil, err
-	}
+func NewSelfPack(compendium *Compendium) *SelfPack {
 	return &SelfPack{
 		compendium: compendium,
-	}, nil
+	}
 }
 
 func (sp *SelfPack) Put(r io.Reader, lastModified time.Time) error {

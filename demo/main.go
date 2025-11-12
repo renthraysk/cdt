@@ -20,13 +20,12 @@ func main() {
 		Path:   "/demo.txt",
 	}
 
-	h, err := cdt.NewSelfPack(3, u.Path, "")
+	compendium, err := cdt.NewCompendium(3, u.Path, "")
 	if err != nil {
-		log.Fatalf("cdt.New failed: %v", err)
+		log.Fatalf("NewCompendium failed: %v", err)
 	}
-
 	mux := http.NewServeMux()
-	mux.Handle(u.Path, h)
+	mux.Handle(u.Path, cdt.NewSelfPack(compendium))
 
 	fmt.Printf("Use: curl -X PUT --data-binary @<file> %s\n", u.String())
 	s := http.Server{
