@@ -4,6 +4,7 @@ const (
 	lower = ((1 << 26) - 1) << 'a'
 	upper = ((1 << 26) - 1) << 'A'
 	digit = ((1 << 10) - 1) << '0'
+	alpha = upper | lower
 )
 
 func isPrint(c byte) bool { return ' ' <= c && c <= '~' }
