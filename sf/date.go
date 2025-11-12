@@ -6,11 +6,23 @@ func dateCut(s string) (string, string, bool) {
 	if len(s) < len("@0") || s[0] != '@' {
 		return "", s, false
 	}
-	ss, r, ok := integerCut(s[1:])
-	if !ok {
+	i := len("@")
+	if s[1] == '-' {
+		i = len("@-")
+	}
+	if i >= len(s) || !isDigit(s[i]) {
 		return "", s, false
 	}
-	return s[:1+len(ss)], r, true
+	for n := min(len(s), i+integerDigits); i < n && isDigit(s[i]); {
+		i++
+	}
+	if i >= len(s) {
+		return s, "", true
+	}
+	if isDigit(s[i]) || s[i] == '.' {
+		return "", s, false
+	}
+	return s[:i], s[i:], true
 }
 
 func dateParse(s string) (time.Time, bool) {
